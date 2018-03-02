@@ -33,6 +33,8 @@ class TransformationImpl extends Transformation {
     @Autowired
     private var options: Options = _
 
+    override def output(): String = "json"
+
     override def transform(source: Path): Option[Path] = {
         Assert.notNull(source, "source")
 
@@ -145,22 +147,29 @@ class TransformationImpl extends Transformation {
                     rowHeaders(index - startRow - 1) = cellValue(cell)
                 }
 
-            Assert.notNull(sheet.getRow(startRow))
-                .cellIterator()
-                .asScala
-                .filter(cell => colSeq.contains(cell.getColumnIndex))
-                .map(cell => (cell, cell.getColumnIndex))
-                .foreach { case (cell, index) =>
+            Option(sheet.getRow(startRow)) match {
+                case Some(row) =>
+                    row.cellIterator()
+                        .asScala
+                        .filter(cell => colSeq.contains(cell.getColumnIndex))
+                        .map(cell => (cell, cell.getColumnIndex))
+                        .foreach { case (cell, index) =>
 
-                    val result = regions
-                        .toStream
-                        .find(r => r.containsRow(startRow) && r.containsColumn(index))
-                        .flatMap(r => Option(sheet.getRow(r.getFirstRow)).map(sr => sr.getCell(r.getFirstColumn)))
-                        .getOrElse(cell)
+                            val result = regions
+                                .toStream
+                                .find(r => r.containsRow(startRow) && r.containsColumn(index))
+                                .flatMap(r => Option(sheet.getRow(r.getFirstRow)).map(sr => sr.getCell(r.getFirstColumn)))
+                                .getOrElse(cell)
 
-                    //Так как пропускаем 1 кононку диапазона (в ней заговоки строк)
-                    colHeaders(index - startCol - 1) = cellValue(result)
-                }
+                            //Так как пропускаем 1 кононку диапазона (в ней заговоки строк)
+                            colHeaders(index - startCol - 1) = cellValue(result)
+                        }
+
+                case None =>
+                    colHeaders.indices
+                        .foreach(index => rowHeaders(index) = s"Col $index")
+            }
+
         } else {
             rowHeaders.indices
                 .foreach(index => rowHeaders(index) = s"Row $index")

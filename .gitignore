@@ -23,6 +23,7 @@ codekit-config.json
 
 # maven
 target
+downloaded
 dependency-reduced-pom.xml
 
 ###### docker ######

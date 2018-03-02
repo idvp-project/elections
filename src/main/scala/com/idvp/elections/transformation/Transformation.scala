@@ -7,5 +7,6 @@ import java.nio.file.Path
   * @since 01.03.18.
   */
 trait Transformation {
+    def output(): String
     def transform(source: Path): Option[Path]
 }
