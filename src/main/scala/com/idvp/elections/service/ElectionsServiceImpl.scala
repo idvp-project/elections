@@ -7,6 +7,7 @@ import java.util.{Collections, Comparator}
 import javax.annotation.PostConstruct
 
 import com.idvp.elections.transformation.Transformation
+import com.idvp.elections.utils.FileUtils
 import com.idvp.elections.utils.TargetPath.TargetPath
 import org.apache.commons.lang3.StringUtils
 import org.quartz._
@@ -60,18 +61,11 @@ class ElectionsServiceImpl extends ElectionsService {
     }
 
     override def getLatest: Option[InputStream] = {
-        val mather = FileSystems.getDefault.getPathMatcher(s"glob:*.${transformation.output()}")
+        val matcher = FileSystems.getDefault.getPathMatcher(s"glob:*.${transformation.output()}")
 
-        val latestPath = Files.list(path)
-            .filter(p => Files.isReadable(p))
-            .filter(p => mather.matches(p.getFileName))
-            .sorted(Comparator.comparingLong(
-                (p: Path) => Files.readAttributes(p, classOf[BasicFileAttributes]).lastModifiedTime().toMillis)
-                .reversed())
-            .findFirst()
-            .orElse(null)
+        val latestPath = FileUtils.getLatestFile(path, matcher)
 
-        Option(latestPath) match {
+        latestPath match {
             case None => None
             case Some(p) =>
                 Try(Files.newInputStream(p, StandardOpenOption.READ)) match {

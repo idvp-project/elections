@@ -4,8 +4,8 @@ import java.nio.file._
 
 import com.idvp.elections.client.Client
 import com.idvp.elections.transformation.Transformation
-import com.idvp.elections.utils.Assert
 import com.idvp.elections.utils.TargetPath.TargetPath
+import com.idvp.elections.utils.{Assert, FileUtils}
 import org.quartz.{DisallowConcurrentExecution, Job, JobExecutionContext}
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.{Autowired, Value}
@@ -24,6 +24,12 @@ class ElectionsJob extends Job {
 
     @Value("${com.idvp.elections.target.path}")
     private var targetPath: String = _
+
+    @Value("${com.idvp.elections.backup.path:old}")
+    private var backupPath: String = _
+
+    @Value("${com.idvp.elections.backup.keep:5}")
+    private var backupKeep: Int = _
 
     @Autowired
     private var client: Client = _
@@ -70,25 +76,28 @@ class ElectionsJob extends Job {
             val target = targetPath.createTargetPath
             val copyTo = target.resolve(s"${System.currentTimeMillis()}.${transformation.output()}")
 
+            FileUtils.move(transformed.get, copyTo)
+
+
             try {
-                try {
-                    Files.move(transformed.get, copyTo, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
-                } catch {
-                    case _: AtomicMoveNotSupportedException =>
-                        Files.move(transformed.get, copyTo, StandardCopyOption.REPLACE_EXISTING)
-                }
+                val backup = target.resolve(backupPath).toAbsolutePath.toString.createTargetPath
+
+                val (_, files) = FileUtils.getLatestFiles(target)
+                    .splitAt(backupKeep)
+
+                files.foreach(p => FileUtils.move(p, backup.resolve(p.getFileName)))
+
             } catch {
                 case e: Exception =>
-                    logger.error(s"Ошибка при переносе файла ${transformed.get}", e)
-                    throw e
+                    logger.error(s"Ошибка при переносе файлов в backup-директорию", e)
             }
+
         } finally {
             Try (Files.delete(path.get)) match {
                 case Failure(ex) =>
                     logger.error(s"Ошибка при удалении файла ${path.get}", ex)
                 case Success(_) =>
             }
-
         }
 
     }

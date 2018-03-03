@@ -1,0 +1,73 @@
+{
+  "properties": [
+    {
+      "name": "com.idvp.elections.source.uri",
+      "type": "java.lang.String",
+      "description": "URI для счачивания excel-файла с результатами голосования."
+    },
+    {
+      "name": "com.idvp.elections.source.retry",
+      "type": "java.lang.Integer",
+      "description": "Количество попыток загрузки файла.",
+      "defaultValue": 3
+    },
+    {
+      "name": "com.idvp.elections.target.path",
+      "type": "java.lang.String",
+      "description": "Путь к папке для хранения трансформированных файлов."
+    },
+    {
+      "name": "com.idvp.elections.backup.path",
+      "type": "java.lang.String",
+      "description": "Путь к папке для хранения старых трансформированных файлов. В случае указания относительного пути, рассчитвается от com.idvp.elections.target.path.",
+      "defaultValue": "old"
+    },
+    {
+      "name": "com.idvp.elections.backup.keep",
+      "type": "java.lang.Integer",
+      "description": "Количество файлов, которое должно оставаться в com.idvp.elections.target.path.",
+      "defaultValue": 5
+    },
+    {
+      "name": "com.idvp.elections.job.cron",
+      "type": "java.lang.String",
+      "description": "Расписание загрузки и трансформации файла (в формате cron)."
+    },
+    {
+      "name": "com.idvp.election.transformation.sheet",
+      "type": "java.lang.Integer",
+      "description": "Трансформация. Номер листа на котором расположенны данные. 0-based.",
+      "defaultValue": 0
+    },
+    {
+      "name": "com.idvp.election.transformation.row.start",
+      "type": "java.lang.Integer",
+      "description": "Трансформация. Номер строки, с которой начинается область данных на листе. 0-based.",
+      "defaultValue": 10
+    },
+    {
+      "name": "com.idvp.election.transformation.row.end",
+      "type": "java.lang.Integer",
+      "description": "Трансформация. Номер строки, которой заканчивается область данных на листе. 0-based.",
+      "defaultValue": 39
+    },
+    {
+      "name": "com.idvp.election.transformation.col.start",
+      "type": "java.lang.Integer",
+      "description": "Трансформация. Номер столбца, с которого начинается область данных на листе. 0-based.",
+      "defaultValue": 1
+    },
+    {
+      "name": "com.idvp.election.transformation.col.end",
+      "type": "java.lang.Integer",
+      "description": "Трансформация. Номер столбца, которым начинается область данных на листе. 0-based.",
+      "defaultValue": 87
+    },
+    {
+      "name": "com.idvp.election.transformation.headers",
+      "type": "java.lang.Boolean",
+      "description": "Трансформация. Содержит ли область данных заголовки столбцов и сток.",
+      "defaultValue": true
+    }
+  ]
+}
