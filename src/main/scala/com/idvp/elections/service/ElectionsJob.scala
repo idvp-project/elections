@@ -31,6 +31,9 @@ class ElectionsJob extends Job {
     @Value("${com.idvp.elections.backup.keep:5}")
     private var backupKeep: Int = _
 
+    @Value("${com.idvp.elections.backup.source.files:false}")
+    private var backupSourceFiles: Boolean = _
+
     @Autowired
     private var client: Client = _
 
@@ -66,6 +69,9 @@ class ElectionsJob extends Job {
             return
         }
 
+        val target = targetPath.createTargetPath
+        val backup = target.resolve(backupPath).toAbsolutePath.toString.createTargetPath
+
         try {
             val transformed = transformation.transform(path.get)
             if (transformed.isEmpty) {
@@ -73,19 +79,18 @@ class ElectionsJob extends Job {
                 return
             }
 
-            val target = targetPath.createTargetPath
             val copyTo = target.resolve(s"${System.currentTimeMillis()}.${transformation.output()}")
 
             FileUtils.move(transformed.get, copyTo)
 
 
             try {
-                val backup = target.resolve(backupPath).toAbsolutePath.toString.createTargetPath
 
                 val (_, files) = FileUtils.getLatestFiles(target)
                     .splitAt(backupKeep)
 
                 files.foreach(p => FileUtils.move(p, backup.resolve(p.getFileName)))
+
 
             } catch {
                 case e: Exception =>
@@ -93,11 +98,20 @@ class ElectionsJob extends Job {
             }
 
         } finally {
-            Try (Files.delete(path.get)) match {
-                case Failure(ex) =>
-                    logger.error(s"Ошибка при удалении файла ${path.get}", ex)
-                case Success(_) =>
+            if (backupSourceFiles) {
+                Try(FileUtils.move(path.get, backup.resolve(path.get.getFileName))) match {
+                    case Failure(ex) =>
+                        logger.error(s"Ошибка при переносе файла ${path.get}", ex)
+                    case Success(_) =>
+                }
+            } else {
+                Try(Files.delete(path.get)) match {
+                    case Failure(ex) =>
+                        logger.error(s"Ошибка при удалении файла ${path.get}", ex)
+                    case Success(_) =>
+                }
             }
+
         }
 
     }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import com.idvp.elections.api.model.Item
 import com.idvp.elections.utils.Assert
 import com.idvp.elections.utils.Using.using
+import org.apache.commons.lang3.StringUtils
 import org.apache.poi.ss.usermodel._
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -143,8 +144,21 @@ class TransformationImpl extends Transformation {
                         .flatMap(r => Option(sheet.getRow(r.getFirstRow)).map(sr => sr.getCell(r.getFirstColumn)))
                         .getOrElse(row.getCell(startCol))
 
-                    //Так как пропускаем 1 строку диапазона (в ней заговоки колонок)
-                    rowHeaders(index - startRow - 1) = cellValue(cell)
+                    val value = cellValue(cell)
+
+                    if (options.getPreviousHeaderIfMissing && StringUtils.isBlank(value)) {
+                        rowHeaders.view(0, index - startRow - 1)
+                            .reverse
+                            .find(h => !StringUtils.isBlank(h)) match {
+                            case None =>
+                                rowHeaders(index - startRow - 1) = value
+                            case Some(h) =>
+                                rowHeaders(index - startRow - 1) = h + options.getMissingHeaderSuffix
+                        }
+
+                    } else {
+                        rowHeaders(index - startRow - 1) = value
+                    }
                 }
 
             Option(sheet.getRow(startRow)) match {
@@ -161,8 +175,20 @@ class TransformationImpl extends Transformation {
                                 .flatMap(r => Option(sheet.getRow(r.getFirstRow)).map(sr => sr.getCell(r.getFirstColumn)))
                                 .getOrElse(cell)
 
-                            //Так как пропускаем 1 кононку диапазона (в ней заговоки строк)
-                            colHeaders(index - startCol - 1) = cellValue(result)
+                            val value = cellValue(result)
+
+                            if (options.getPreviousHeaderIfMissing && StringUtils.isBlank(value)) {
+                                colHeaders.view(0, index - startCol - 1)
+                                    .reverse
+                                    .find(h => !StringUtils.isBlank(h)) match {
+                                    case None =>
+                                        colHeaders(index - startCol - 1) = value
+                                    case Some(h) =>
+                                        colHeaders(index - startCol - 1) = h + options.getMissingHeaderSuffix
+                                }
+                            } else {
+                                colHeaders(index - startCol - 1) = value
+                            }
                         }
 
                 case None =>

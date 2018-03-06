@@ -29,10 +29,19 @@ class Options {
     @Value("${com.idvp.election.transformation.headers:true}")
     private var containsHeaders: Boolean = _
 
+    @Value("${com.idvp.election.transformation.headers.missing.previous:true}")
+    private var previousHeaderIfMissing: Boolean = _
+
+    @Value("${com.idvp.election.transformation.headers.missing.suffix: %}")
+    private var missingHeaderSuffix: String = _
+
     def getSheet: Int = sheet
 
     def getRange: (Int, Int, Int, Int) = (rowStart, colStart, rowEnd, colEnd)
 
     def isContainsHeaders: Boolean = containsHeaders
 
+    def getPreviousHeaderIfMissing: Boolean = previousHeaderIfMissing
+
+    def getMissingHeaderSuffix: String = missingHeaderSuffix
 }
