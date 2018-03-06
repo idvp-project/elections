@@ -32,7 +32,7 @@ class Options {
     @Value("${com.idvp.election.transformation.headers.missing.previous:true}")
     private var previousHeaderIfMissing: Boolean = _
 
-    @Value("${com.idvp.election.transformation.headers.missing.suffix: %}")
+    @Value("${com.idvp.election.transformation.headers.missing.suffix:, %}")
     private var missingHeaderSuffix: String = _
 
     def getSheet: Int = sheet
