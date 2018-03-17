@@ -1,9 +1,8 @@
 package com.idvp.elections.service
 
 import java.io.InputStream
-import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileSystems, Files, Path, StandardOpenOption}
-import java.util.{Collections, Comparator}
+import java.util.Collections
 import javax.annotation.PostConstruct
 
 import com.idvp.elections.transformation.Transformation
@@ -91,6 +90,7 @@ class ElectionsServiceImpl extends ElectionsService {
         } else {
             scheduler.scheduleJob(createJob, TriggerBuilder.newTrigger()
                 .startNow()
+                .usingJobData(ElectionsJob.EXTERNAL_FILE_PATH, externalPath)
                 .build())
         }
     }

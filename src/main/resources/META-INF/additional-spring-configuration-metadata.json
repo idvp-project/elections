@@ -49,7 +49,7 @@
       "name": "com.idvp.election.transformation.row.end",
       "type": "java.lang.Integer",
       "description": "Трансформация. Номер строки, которой заканчивается область данных на листе. 0-based.",
-      "defaultValue": 39
+      "defaultValue": 45
     },
     {
       "name": "com.idvp.election.transformation.col.start",
@@ -61,7 +61,7 @@
       "name": "com.idvp.election.transformation.col.end",
       "type": "java.lang.Integer",
       "description": "Трансформация. Номер столбца, которым начинается область данных на листе. 0-based.",
-      "defaultValue": 87
+      "defaultValue": 89
     },
     {
       "name": "com.idvp.election.transformation.headers",

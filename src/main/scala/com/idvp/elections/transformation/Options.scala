@@ -17,13 +17,13 @@ class Options {
     @Value("${com.idvp.election.transformation.row.start:10}")
     private var rowStart: Int = _
 
-    @Value("${com.idvp.election.transformation.row.end:39}")
+    @Value("${com.idvp.election.transformation.row.end:45}")
     private var rowEnd: Int = _
 
     @Value("${com.idvp.election.transformation.col.start:1}")
     private var colStart: Int = _
 
-    @Value("${com.idvp.election.transformation.col.end:87}")
+    @Value("${com.idvp.election.transformation.col.end:89}")
     private var colEnd: Int = _
 
     @Value("${com.idvp.election.transformation.headers:true}")
