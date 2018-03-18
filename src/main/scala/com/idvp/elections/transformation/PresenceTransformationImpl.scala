@@ -22,17 +22,17 @@ import scala.util.{Failure, Success, Try}
   */
 //noinspection VarCouldBeVal
 @Component
-class TransformationImpl extends Transformation {
+class PresenceTransformationImpl extends PresenceTransformation {
 
     private val mapper = new ObjectMapper()
         .configure(SerializationFeature.CLOSE_CLOSEABLE, true)
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
         .configure(SerializationFeature.WRITE_DATES_WITH_ZONE_ID, false)
 
-    private val logger = LoggerFactory.getLogger(classOf[Transformation])
+    private val logger = LoggerFactory.getLogger(classOf[ElectionsTransformation])
 
     @Autowired
-    private var options: Options = _
+    private var options: PresenceOptions = _
 
     override def output(): String = "json"
 
@@ -57,7 +57,7 @@ class TransformationImpl extends Transformation {
             return None
         }
 
-        val tempPath = Files.createTempFile("elections", ".transformed.tmp")
+        val tempPath = Files.createTempFile("presence", ".transformed.tmp")
 
         val result = Try(using(Files.newOutputStream(tempPath,
             StandardOpenOption.WRITE,
@@ -106,6 +106,18 @@ class TransformationImpl extends Transformation {
 
                         Item(rowHeader, colHeader, cellValue(cell))
                     })
+                    .filterNot(i => StringUtils.isBlank(i.getValue))
+                    .groupBy(i => i.row)
+                    .map(group => {
+                        val (_, items) = group
+
+                        items
+                            .sortBy(s => s.column)(Ordering.String.reverse)
+                            .head
+                    })
+                    .filter(i => i != null)
+                    .toStream
+                    .sortBy(i => rowHeaders.indexOf(i.row))
                     .toList
                     .asJava
             }
@@ -145,20 +157,7 @@ class TransformationImpl extends Transformation {
                         .getOrElse(row.getCell(startCol))
 
                     val value = cellValue(cell)
-
-                    if (options.getPreviousHeaderIfMissing && StringUtils.isBlank(value)) {
-                        rowHeaders.view(0, index - startRow - 1)
-                            .reverse
-                            .find(h => !StringUtils.isBlank(h)) match {
-                            case None =>
-                                rowHeaders(index - startRow - 1) = value
-                            case Some(h) =>
-                                rowHeaders(index - startRow - 1) = h + options.getMissingHeaderSuffix
-                        }
-
-                    } else {
-                        rowHeaders(index - startRow - 1) = value
-                    }
+                    rowHeaders(index - startRow - 1) = value
                 }
 
             Option(sheet.getRow(startRow)) match {
@@ -176,31 +175,19 @@ class TransformationImpl extends Transformation {
                                 .getOrElse(cell)
 
                             val value = cellValue(result)
-
-                            if (options.getPreviousHeaderIfMissing && StringUtils.isBlank(value)) {
-                                colHeaders.view(0, index - startCol - 1)
-                                    .reverse
-                                    .find(h => !StringUtils.isBlank(h)) match {
-                                    case None =>
-                                        colHeaders(index - startCol - 1) = value
-                                    case Some(h) =>
-                                        colHeaders(index - startCol - 1) = h + options.getMissingHeaderSuffix
-                                }
-                            } else {
-                                colHeaders(index - startCol - 1) = value
-                            }
+                            colHeaders(index - startCol - 1) = value;
                         }
 
                 case None =>
                     colHeaders.indices
-                        .foreach(index => rowHeaders(index) = s"Col $index")
+                        .foreach(index => colHeaders(index) = s"Col $index")
             }
 
         } else {
             rowHeaders.indices
                 .foreach(index => rowHeaders(index) = s"Row $index")
             colHeaders.indices
-                .foreach(index => rowHeaders(index) = s"Col $index")
+                .foreach(index => colHeaders(index) = s"Col $index")
         }
 
         (rowHeaders, colHeaders)
@@ -212,7 +199,7 @@ class TransformationImpl extends Transformation {
         Assert.notNull(formatter, "formatter")
 
         Option(cell)
-            .map(cell => formatter.formatCellValue(cell, evaluator))
+            .map(cell => StringUtils.trim(StringUtils.stripEnd(formatter.formatCellValue(cell, evaluator), "%")))
             .orNull
     }
 

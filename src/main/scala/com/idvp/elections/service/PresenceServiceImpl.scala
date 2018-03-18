@@ -5,7 +5,7 @@ import java.nio.file.{FileSystems, Files, Path, StandardOpenOption}
 import java.util.Collections
 import javax.annotation.PostConstruct
 
-import com.idvp.elections.transformation.ElectionsTransformation
+import com.idvp.elections.transformation.PresenceTransformation
 import com.idvp.elections.utils.FileUtils
 import com.idvp.elections.utils.TargetPath.TargetPath
 import org.apache.commons.lang3.StringUtils
@@ -22,20 +22,20 @@ import scala.util.{Failure, Success, Try}
   */
 //noinspection VarCouldBeVal
 @Service
-class ElectionsServiceImpl extends ElectionsService {
+class PresenceServiceImpl extends PresenceService {
 
-    private val logger = LoggerFactory.getLogger(classOf[ElectionsService])
+    private val logger = LoggerFactory.getLogger(classOf[PresenceService])
 
     @Autowired
     private var scheduler: Scheduler = _
 
     @Autowired
-    private var transformation: ElectionsTransformation = _
+    private var transformation: PresenceTransformation = _
 
-    @Value("${com.idvp.elections.target.path}")
+    @Value("${com.idvp.presence.target.path}")
     private var targetPath: String = _
 
-    @Value("${com.idvp.elections.job.cron:}")
+    @Value("${com.idvp.presence.job.cron:}")
     private var cron: String = _
 
     private var path: Path = _
@@ -46,7 +46,7 @@ class ElectionsServiceImpl extends ElectionsService {
 
         if (StringUtils.isNotEmpty(cron)) {
             val trigger = TriggerBuilder.newTrigger()
-                .withIdentity(ElectionsJob.JOB_NAME)
+                .withIdentity(PresenceJob.JOB_NAME)
                 .withSchedule(CronScheduleBuilder
                     .cronSchedule(cron)
                     .withMisfireHandlingInstructionDoNothing)
@@ -77,27 +77,27 @@ class ElectionsServiceImpl extends ElectionsService {
     }
 
     override def forceUpdate(externalPath: String): Unit = {
-        val key = new JobKey(ElectionsJob.JOB_NAME)
+        val key = new JobKey(PresenceJob.JOB_NAME)
         if (scheduler.checkExists(key)) {
 
             if (externalPath == null) {
                 scheduler.triggerJob(key)
             } else {
                 val map = new JobDataMap()
-                map.put(ElectionsJob.EXTERNAL_FILE_PATH, externalPath)
+                map.put(PresenceJob.EXTERNAL_FILE_PATH, externalPath)
                 scheduler.triggerJob(key, map)
             }
         } else {
             scheduler.scheduleJob(createJob, TriggerBuilder.newTrigger()
                 .startNow()
-                .usingJobData(ElectionsJob.EXTERNAL_FILE_PATH, externalPath)
+                .usingJobData(PresenceJob.EXTERNAL_FILE_PATH, externalPath)
                 .build())
         }
     }
 
     private def createJob = {
-        JobBuilder.newJob(classOf[ElectionsJob])
-            .withIdentity(ElectionsJob.JOB_NAME)
+        JobBuilder.newJob(classOf[PresenceJob])
+            .withIdentity(PresenceJob.JOB_NAME)
             .build()
     }
 }

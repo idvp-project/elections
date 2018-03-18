@@ -3,7 +3,7 @@ package com.idvp.elections.service
 import java.nio.file._
 
 import com.idvp.elections.client.Client
-import com.idvp.elections.transformation.ElectionsTransformation
+import com.idvp.elections.transformation.PresenceTransformation
 import com.idvp.elections.utils.TargetPath.TargetPath
 import com.idvp.elections.utils.{Assert, FileUtils}
 import org.quartz.{DisallowConcurrentExecution, Job, JobExecutionContext}
@@ -18,35 +18,35 @@ import scala.util.{Failure, Success, Try}
   */
 //noinspection VarCouldBeVal
 @DisallowConcurrentExecution
-class ElectionsJob extends Job {
+class PresenceJob extends Job {
 
-    private val logger = LoggerFactory.getLogger(classOf[ElectionsJob])
+    private val logger = LoggerFactory.getLogger(classOf[PresenceJob])
 
-    @Value("${com.idvp.elections.source.uri}")
+    @Value("${com.idvp.presence.source.uri}")
     private var sourceUri: String = _
 
-    @Value("${com.idvp.elections.target.path}")
+    @Value("${com.idvp.presence.target.path}")
     private var targetPath: String = _
 
-    @Value("${com.idvp.elections.backup.path:old}")
+    @Value("${com.idvp.presence.backup.path:old-presence}")
     private var backupPath: String = _
 
-    @Value("${com.idvp.elections.backup.keep:5}")
+    @Value("${com.idvp.presence.backup.keep:5}")
     private var backupKeep: Int = _
 
-    @Value("${com.idvp.elections.backup.source.files:false}")
+    @Value("${com.idvp.presence.backup.source.files:false}")
     private var backupSourceFiles: Boolean = _
 
     @Autowired
     private var client: Client = _
 
     @Autowired
-    private var transformation: ElectionsTransformation = _
+    private var transformation: PresenceTransformation = _
 
     override def execute(context: JobExecutionContext): Unit = {
         Assert.notNull(context, "context")
 
-        val externalPath = Option(context.getMergedJobDataMap.getString(ElectionsJob.EXTERNAL_FILE_PATH))
+        val externalPath = Option(context.getMergedJobDataMap.getString(PresenceJob.EXTERNAL_FILE_PATH))
 
         val path = externalPath match {
             case Some(p) =>
@@ -120,7 +120,9 @@ class ElectionsJob extends Job {
     }
 }
 
-object ElectionsJob {
+object PresenceJob {
     val EXTERNAL_FILE_PATH = "EXTERNAL_FILE_PATH"
-    val JOB_NAME = "ElectionsJob"
+    val JOB_NAME = "PresenceJob"
 }
+
+

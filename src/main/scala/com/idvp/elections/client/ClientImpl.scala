@@ -5,6 +5,7 @@ import java.net.ProxySelector
 import java.nio.file._
 import javax.annotation.{PostConstruct, PreDestroy}
 
+import com.idvp.elections.utils.Assert
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.{HttpResponseException, ResponseHandler}
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClientBuilder, StandardHttpRequestRetryHandler}
@@ -25,8 +26,6 @@ class ClientImpl extends Client {
 
     private val logger = LoggerFactory.getLogger(classOf[Client])
 
-    @Value("${com.idvp.elections.source.uri}")
-    private var sourceUri: String = _
 
     @Value("${com.idvp.elections.source.retry:3}")
     private var sourceRetry: Int = 3
@@ -49,7 +48,9 @@ class ClientImpl extends Client {
         }
     }
 
-    override def download(): Option[Path] = {
+    override def download(sourceUri: String): Option[Path] = {
+        Assert.notEmpty(sourceUri, "sourceUri")
+
         val request = new HttpGet(sourceUri)
         client.execute(request, new FileResponseHandler())
     }

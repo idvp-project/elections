@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
   */
 //noinspection VarCouldBeVal
 @Component
-class Options {
+class ElectionsOptions {
 
     @Value("${com.idvp.election.transformation.sheet:0}")
     private var sheet: Int = _

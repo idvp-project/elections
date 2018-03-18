@@ -7,5 +7,5 @@ import java.nio.file.Path
   * @since 01.03.18.
   */
 trait Client {
-    def download(): Option[Path]
+    def download(sourceUri: String): Option[Path]
 }

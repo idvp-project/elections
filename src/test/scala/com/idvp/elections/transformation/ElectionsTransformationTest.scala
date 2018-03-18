@@ -6,7 +6,7 @@ import com.idvp.elections.ApplicationConfig
 import com.idvp.elections.client.Client
 import org.junit.runner.RunWith
 import org.junit.{Assert, Test}
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.{Autowired, Value}
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
@@ -18,11 +18,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(classOf[SpringJUnit4ClassRunner])
 @SpringBootTest
 @Import(Array(classOf[ApplicationConfig]))
-class TransformationTest {
+class ElectionsTransformationTest {
+
+    //noinspection VarCouldBeVal
+    @Value("${com.idvp.elections.source.uri}")
+    private var sourceUri: String = _
 
     //noinspection VarCouldBeVal
     @Autowired
-    private var transformation: Transformation = _
+    private var transformation: ElectionsTransformation = _
 
     //noinspection VarCouldBeVal
     @Autowired
@@ -43,7 +47,7 @@ class TransformationTest {
 
     @Test
     def test3(): Unit = {
-        val path = client.download()
+        val path = client.download(sourceUri)
         Assert.assertNotNull(path.orNull)
         val transformed = transformation.transform(path.get)
         Assert.assertNotNull(transformed.orNull)
